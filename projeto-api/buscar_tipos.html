@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Pokemon por Tipo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main class="container">
+        <h1>Buscar Pokemon por Tipo</h1>
+
+        <p>Digite um tipo de Pokemon para listar alguns resultados.</p>
+
+        <form id="formTipo">
+            <select id="campoTipo">
+                <option value="">Escolha um tipo</option>
+                <option value="normal">⚪ Normal</option>
+                <option value="fighting">🥊 Fighting</option>
+                <option value="flying">🪽 Flying</option>
+                <option value="poison">☠️ Poison</option>
+                <option value="ground">⛰️ Ground</option>
+                <option value="rock">🪨 Rock</option>
+                <option value="bug">🐛 Bug</option>
+                <option value="ghost">👻 Ghost</option>
+                <option value="steel">⚙️ Steel</option>
+                <option value="fire">🔥 Fire</option>
+                <option value="water">💧 Water</option>
+                <option value="grass">🌿 Grass</option>
+                <option value="electric">⚡ Electric</option>
+                <option value="psychic">🔮 Psychic</option>
+                <option value="ice">❄️ Ice</option>
+                <option value="dragon">🐉 Dragon</option>
+                <option value="dark">🌑 Dark</option>
+                <option value="fairy">✨ Fairy</option>
+                <option value="stellar">🌟 Stellar</option>
+                <option value="unknown">❔ Unknown</option>
+            </select>
+
+            <button type="submit">Buscar</button>
+        </form>
+
+        <section id="mensagem"></section>
+
+        <section id="infoPagina"></section>
+
+        <section id="resultado" class="grid-tipos"></section>
+
+        <section id="paginacao" class="paginacao"></section>
+
+        <p>
+            <a href="index.html">Voltar para o início</a>
+        </p>
+
+        <footer>
+            <p><i>&copy; 2026 / ADS III / Ray Dias</i></p>
+        </footer>
+
+        <div style="text-align: center;">
+ 			<button>
+        		<a href = "https://github.com/Ray-Campos" target="8">GitHub</a>
+			</button>
+		</div>
+    </main>
+
+    <script>
+        const form = document.getElementById('formTipo');
+        const campo = document.getElementById('campoTipo');
+        const resultado = document.getElementById('resultado');
+        const mensagem = document.getElementById('mensagem');
+        const paginacao = document.getElementById('paginacao');
+        const infoPagina = document.getElementById('infoPagina');
+
+        let tipoAtual = '';
+        let paginaAtual = 1;
+        const limite = 20;
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            tipoAtual = campo.value.trim();
+            paginaAtual = 1;
+
+            if (tipoAtual === '') {
+                resultado.innerHTML = '';
+                paginacao.innerHTML = '';
+                infoPagina.innerHTML = '';
+                mensagem.innerHTML = '<p class="erro">Escolha um tipo de Pokemon.</p>';
+                return;
+            }
+
+            buscarTipo();
+        });
+
+        async function buscarTipo() {
+            resultado.innerHTML = '';
+            paginacao.innerHTML = '';
+            infoPagina.innerHTML = '';
+            mensagem.innerHTML = 'Carregando...';
+
+            const url = 'api.php?tipo=' 
+                + encodeURIComponent(tipoAtual) 
+                + '&page=' 
+                + paginaAtual 
+                + '&limit=' 
+                + limite;
+
+            const resposta = await fetch(url);
+            const dados = await resposta.json();
+
+            mensagem.innerHTML = '';
+
+            if (dados.erro) {
+                mensagem.innerHTML = '<p class="erro">' + dados.mensagem + '</p>';
+                return;
+            }
+
+            infoPagina.innerHTML = `
+                <p>
+                    Tipo: <strong>${dados.tipo}</strong> |
+                    Total: <strong>${dados.total}</strong> |
+                    Página <strong>${dados.pagina}</strong> de <strong>${dados.totalPaginas}</strong>
+                </p>
+            `;
+
+            let cards = '';
+
+            dados.pokemons.forEach(function(pokemon) {
+                cards += `
+                    <div class="card-tipo">
+                        <img src="${pokemon.imagem}">
+
+                        <h3>${pokemon.nome}</h3>
+
+                        <p><strong>ID:</strong> ${pokemon.id}</p>
+                    </div>
+                `;
+            });
+
+            resultado.innerHTML = cards;
+
+            mostrarPaginacao(dados.pagina, dados.totalPaginas);
+        }
+
+        function mostrarPaginacao(pagina, totalPaginas) {
+            let botoes = '';
+
+            if (pagina > 1) {
+                botoes += '<button onclick="mudarPagina(' + (pagina - 1) + ')">Anterior</button>';
+            }
+
+            botoes += '<span>Página ' + pagina + ' de ' + totalPaginas + '</span>';
+
+            if (pagina < totalPaginas) {
+                botoes += '<button onclick="mudarPagina(' + (pagina + 1) + ')">Próxima</button>';
+            }
+
+            paginacao.innerHTML = botoes;
+        }
+
+        function mudarPagina(novaPagina) {
+            paginaAtual = novaPagina;
+            buscarTipo();
+        }
+    </script>
+
+</body>
+</html>

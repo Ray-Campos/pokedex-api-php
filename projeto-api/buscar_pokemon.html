@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca Pokemon</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main class="container">
+        <section class="topo">
+            <h1>Busca Pokemon</h1>
+            <p>Digite o nome de um Pokemon para buscar seus dados na PokeAPI.</p>
+
+            <form id="formBusca">
+                <input 
+                    type="text" 
+                    id="campoPokemon" 
+                    placeholder="ex: pikachu, charizard, ditto"
+                >
+
+                <button type="submit">Buscar</button>
+            </form>
+        </section>
+
+        <section id="mensagem"></section>
+
+        <section id="resultado" class="grid"></section>
+
+        <p>
+            <a href="index.html">Voltar para o início</a>
+        </p>
+
+        <footer>
+            <p><i>&copy; 2026 / ADS III / Ray Dias</i></p>
+        </footer>
+
+        <div style="text-align: center;">
+ 			<button>
+        		<a href = "https://github.com/Ray-Campos" target="8">GitHub</a>
+			</button>
+		</div>
+    </main>
+
+    <script>
+        const formBusca = document.getElementById('formBusca');
+        const campoPokemon = document.getElementById('campoPokemon');
+        const resultado = document.getElementById('resultado');
+        const mensagem = document.getElementById('mensagem');
+
+        formBusca.addEventListener('submit', async function(evento) {
+            evento.preventDefault();
+
+            const pokemon = campoPokemon.value.trim();
+
+            resultado.innerHTML = '';
+            mensagem.innerHTML = '';
+
+            if (pokemon === '') {
+                mostrarErro('Digite o nome de um Pokemon.');
+                return;
+            }
+
+            mensagem.innerHTML = '<p class="carregando">Carregando...</p>';
+
+            try {
+                const resposta = await fetch(`api.php?pokemon=${encodeURIComponent(pokemon)}`);
+                const dados = await resposta.json();
+
+                mensagem.innerHTML = '';
+
+                if (dados.erro) {
+                    mostrarErro(dados.mensagem);
+                    return;
+                } else {
+                    mostrarPokemon(dados);
+                }
+
+            } catch (erro) {
+                mensagem.innerHTML = '';
+                mostrarErro('Erro ao buscar os dados!!!');
+            }
+        });
+
+        function mostrarErro(texto) {
+            mensagem.innerHTML = `<p class="erro">${texto}</p>`;
+        }
+
+        function mostrarPokemon(pokemon) {
+            const tiposHtml = pokemon.tipos.map(tipo => {
+                return `<span class="tag">${tipo}</span>`;
+            }).join('');
+
+            const habilidadesHtml = pokemon.habilidades.map(habilidade => {
+                return `<span class="tag habilidade">${habilidade}</span>`;
+            }).join('');
+
+            resultado.innerHTML = `
+                <article class="card">
+                    <h2>${pokemon.nome}</h2>
+
+                    <img 
+                        src="${pokemon.imagem}"
+                    >
+
+                    <p><strong>ID:</strong> ${pokemon.id}</p>
+                    <p><strong>Altura:</strong> ${pokemon.altura}</p>
+                    <p><strong>Peso:</strong> ${pokemon.peso}</p>
+
+                    <p><strong>Tipos:</strong></p>
+                    <div class="tags">
+                        ${tiposHtml}
+                    </div>
+
+                    <p><strong>Habilidades:</strong></p>
+                    <div class="tags">
+                        ${habilidadesHtml}
+                    </div>
+                </article>
+            `;
+        }
+    </script>
+
+</body>
+</html>
